@@ -40,7 +40,7 @@ public class LevelEditor : MonoBehaviour
         var element = tiles.ElementAt((int)UnityEngine.Random.Range(0, tiles.Count-1)).Value;
         if(element != null){
             var position = element.transform.position;
-            var instance = Instantiate(carPrefab,  position+ Vector3.up, Quaternion.identity);
+            var instance = Instantiate(carPrefab,  position+  new Vector3(UnityEngine.Random.Range(-0.5f,0.5f),1,UnityEngine.Random.Range(-0.5f,0.5f)), Quaternion.identity);
         }
     }
 
