@@ -8,6 +8,8 @@ TagManager:
   - InPoi
   - OutPoi
   - MidPoi
+  - Car
+  - CrossingBlock
   layers:
   - Default
   - TransparentFX

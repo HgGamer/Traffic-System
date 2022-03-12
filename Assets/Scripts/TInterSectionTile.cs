@@ -7,7 +7,7 @@ public class TInterSectionTile : Tile
     
     public override List<GameObject> Neighbours()
     {
-        Debug.Log("TinterSection Neighbours");
+       
         List<GameObject> neighbours = new List<GameObject>();
         GameObject  neighbour = null;
         foreach(var arr in TileIds()){
@@ -31,7 +31,6 @@ public class TInterSectionTile : Tile
                 neighbours.Add(neighbour);
             }
         }
-        Debug.Log(neighbours.Count);
         return neighbours;
     }
 
