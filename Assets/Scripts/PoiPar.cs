@@ -4,9 +4,11 @@ using UnityEngine;
 
 public class PoiPar : MonoBehaviour
 {
-    public GameObject[] pois;
+    [SerializeField]
+    protected GameObject[] pois;
 
-    void Start(){
+    public virtual GameObject[] getPois(){
+        return pois;
     }
 
 }

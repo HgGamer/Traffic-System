@@ -7,7 +7,11 @@ using System.Linq;
 
 public class LevelEditor : MonoBehaviour
 {
-    Dictionary<string, GameObject> tiles = new Dictionary<string, GameObject>();
+    public GameObject DebugCube;
+
+
+
+    public Dictionary<string, GameObject> tiles = new Dictionary<string, GameObject>();
     public static LevelEditor Instance;
     public GameObject carPrefab;
     GameObject cursor;
@@ -48,6 +52,7 @@ public class LevelEditor : MonoBehaviour
     public void RegisterTile(string id, GameObject tile)
     {
         tiles.Add(id, tile);
+       
     }
 
     public void UnregisterTile(string id)
@@ -60,9 +65,18 @@ public class LevelEditor : MonoBehaviour
 
     public GameObject getTile(string id)
     {
-        tiles.TryGetValue(id, out GameObject tile);
-        return tile;
+        if(tiles.ContainsKey(id)){
+             tiles.TryGetValue(id, out GameObject tile);
+             return tile;
+        }
+        return null;
+        
     }
+
+
+   
+   
+
     public void SetTile(GameObject Prefab)
     {
         Destroy(cursor);
@@ -109,6 +123,7 @@ public class LevelEditor : MonoBehaviour
                     new GameObject("Map");
                 }
                 instance.transform.parent = GameObject.Find("Map").transform;
+                instance.GetComponent<Tile>().Place();
             }
         }
     }

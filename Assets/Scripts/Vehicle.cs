@@ -21,7 +21,7 @@ public class Vehicle : MonoBehaviour
 
 
     void FillPath(){
-        foreach (var poi in lastPoi.GetComponent<OutPoi>().ClosestPoi.GetComponent<PoiPar>().pois)
+        foreach (var poi in lastPoi.GetComponent<OutPoi>().ClosestPoi.GetComponent<PoiPar>().getPois())
         {
             pois.Add(poi.transform.position);
             lastPoi = poi;

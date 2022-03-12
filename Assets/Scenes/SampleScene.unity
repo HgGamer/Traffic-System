@@ -152,6 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be0f8835d96ea43c7a3fdbb2d1e7403a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  DebugCube: {fileID: 0}
   carPrefab: {fileID: 8057574435518712306, guid: 1d29cce1c028a449abe44d1561cdb891, type: 3}
 --- !u!4 &395043224
 Transform:

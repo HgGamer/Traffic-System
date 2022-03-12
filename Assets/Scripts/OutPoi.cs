@@ -13,11 +13,15 @@ public class OutPoi : MonoBehaviour
     }
     void SimulationStart(){
         ClosestPoi = GetClosestInPoi();
-        Debug.Log("OutPoi Start");
     }
     GameObject GetClosestInPoi(){
+        GameObject parent = transform.parent.gameObject;
+        while (parent.GetComponent<Tile>() == null){
+            parent = parent.transform.parent.gameObject;
+        }
         
-        var tiles = transform.parent.parent.GetComponent<Tile>().Neighbours();
+        var tiles = parent.GetComponent<Tile>().Neighbours();
+        
         float minDistance = float.MaxValue;
         GameObject closestPoi = null;
         foreach(var tile in tiles){
@@ -32,6 +36,10 @@ public class OutPoi : MonoBehaviour
                 }
             }
         }
+        if(closestPoi == null){
+            Debug.Log("NO CLOSEST POI FOUND");
+        }
+       
         return closestPoi;
     }
 }
