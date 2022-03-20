@@ -10,7 +10,7 @@ public class Tile : MonoBehaviour
     }
     void Start()
     {
-     //Place();   
+     Place();   
     }
     
     public virtual void Place(){

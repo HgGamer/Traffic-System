@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class Vehicle : MonoBehaviour
 {
-    public float currentoffset;
+   public float currentoffset;
     public GameObject FutureVehicle;
     public float futureoffset = 0.2f;
-    List<Vector3> pois = new List<Vector3>();
+    List<GameObject> pois = new List<GameObject>();
     List<Vector3> futurepois = new List<Vector3>();
     GameObject lastPoi;
     Vector3 target;
@@ -15,6 +15,7 @@ public class Vehicle : MonoBehaviour
     bool speedup = true;
     public float speed = 2;
     float oldspeed;
+    bool waiting = false;
     Tile GetCurrentTile(){
         //raycast down to find the tile
         RaycastHit hit;
@@ -25,12 +26,44 @@ public class Vehicle : MonoBehaviour
         }
         return null;
     }
+    IEnumerator WaitAndGo(float time = 0){
+        if(!waiting){
+            waiting = true;
+            float lastspeed = speed;
+            speed = 0;
+            yield return new WaitForSeconds(1.0f+time);
+            speed = lastspeed;
+             waiting = false;
+        }
+        
+    }
 
-
+    IEnumerator WaitForBlock(List<GameObject> zones,bool stop){
+        float lastspeed = speed;
+        speed = 0;
+        if(stop){
+             yield return new WaitForSeconds(1f);
+        }
+       
+        Debug.Log("WaitForBlock");
+        while(ZonesBlocked(zones)){
+            Debug.Log("Blocked zones");
+            yield return new WaitForSeconds(1f);
+        }
+        speed = lastspeed;
+    }
+    bool ZonesBlocked(List<GameObject> zones){
+        foreach(GameObject zone in zones){
+            if(zone.GetComponent<CheckZone>().blocked){
+                return true;
+            }
+        }
+        return false;
+    }
     void FillPath(){
         foreach (var poi in lastPoi.GetComponent<OutPoi>().ClosestPoi.GetComponent<PoiPar>().getPois())
         {
-            pois.Add(poi.transform.position);
+            pois.Add(poi);
             futurepois.Add(poi.transform.position);
             lastPoi = poi;
         }
@@ -45,45 +78,29 @@ public class Vehicle : MonoBehaviour
     void OnDisable(){
         EventManager.OnSimulationStop -= SimulationStop;
     }
+
     void Start(){
-        
+        if(GetCurrentTile() == null || GetCurrentTile().GetPois(transform.position) == null){
+            DestroyImmediate(gameObject);
+            return;
+        }
         foreach (var poi in GetCurrentTile().GetPois(transform.position))
         {
-            pois.Add(poi.transform.position);
+            pois.Add(poi);
             futurepois.Add(poi.transform.position);
             lastPoi = poi;
         }
         speed = Random.Range(1.0f,2.5f);
-        target = new Vector3(pois[0].x, transform.position.y, pois[0].z);
+        target = new Vector3(pois[0].transform.position.x, transform.position.y, pois[0].transform.position.z);
         FutureTarget = target;
         transform.position = target + Vector3.up;
         FutureVehicle.transform.parent = transform.parent;
         FutureVehicle.GetComponent<FutureCar>().Vehicle = gameObject;
         oldspeed = speed;
     }
-    public void VehicleFront(float newspeed){
-        if(newspeed>speed){
-            return;
-        }
-        oldspeed = speed;
-        speed = newspeed;
-    }
-    public void VehicleBack(){
-        speed = oldspeed;
-        speedup = true;
-    }
-    public void Stop(){
-        oldspeed = speed;
-        speedup = false;
-        speed = 0;
-    }
-    
-    
-    void Move(){
+     void Move(){
         
-        if(speedup && oldspeed>speed && Random.Range(0,100)>95){
-            speed += 0.1f;
-        }
+        
 
         
         if(target == Vector3.zero){
@@ -94,14 +111,17 @@ public class Vehicle : MonoBehaviour
         if(Vector3.Distance(transform.position, target) < 0.1f){
             pois.RemoveAt(0);
             if(pois.Count>0){
-                target = new Vector3(pois[0].x, transform.position.y, pois[0].z);
+                target = new Vector3(pois[0].transform.position.x, transform.position.y, pois[0].transform.position.z);
             }else{
                 target = Vector3.zero;
             }
         }       
     }
 
-    void MoveFutureVehicle(){
+    void MoveFutureVehicle(int call = 0){
+        if(call>10){
+            return;
+        }
         if(FutureTarget == Vector3.zero){
             return;
         }
@@ -120,7 +140,7 @@ public class Vehicle : MonoBehaviour
             }
         }       
         if(Vector3.Distance(transform.position,FutureVehicle.transform.position)<futureoffset){
-            MoveFutureVehicle();
+            MoveFutureVehicle(++call);
         }
         currentoffset= Vector3.Distance(transform.position,FutureVehicle.transform.position);
     }
@@ -131,5 +151,52 @@ public class Vehicle : MonoBehaviour
         Move();
         MoveFutureVehicle();
     }
-    
+
+    public void Stop(){
+        oldspeed = speed;
+        speedup = false;
+        speed = 0;
+    }
+
+    public void VehicleFront(float newspeed){
+        if(newspeed == 0){
+            StartCoroutine(WaitAndGo(0.5f));
+            return;
+        }
+
+        if(newspeed>speed){
+            return;
+        }
+        oldspeed = speed;
+        speed = newspeed;
+    }
+    public void VehicleBack(){
+        speed = oldspeed;
+        speedup = true;
+    }
+    void OnTriggerEnter(Collider other){
+       
+        if(other.gameObject.tag == "InterSectionBlock"){
+            GameObject nextOutPoi = null;
+            foreach(GameObject poi in pois){
+                if(poi.tag == "OutPoi"){
+                    nextOutPoi = poi;
+                    break;
+                }
+            }
+           
+            var InterSectionBlock = other.gameObject.GetComponent<InterSectionNavigator>();
+            var zones = InterSectionBlock.GetBlockZone(nextOutPoi);
+            if(zones.Count == 0){
+                Debug.Log("No zones");
+                if(InterSectionBlock.StopSign){
+                    StartCoroutine(WaitAndGo());
+                }
+                return;
+            }
+            StartCoroutine(WaitForBlock(zones,InterSectionBlock.StopSign));
+            
+        }
+    }
+
 }
